@@ -5,8 +5,6 @@ import os
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
-from main import orchestrator_entry
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="nDrill: Advanced Automated Security Assessment Suite")

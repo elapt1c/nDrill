@@ -27,8 +27,8 @@ class ToolExecutor:
 
     def _docker_image_exists(self, image_name):
         try:
-            self._docker_command(["docker", "images", "-q", image_name])
-            return True
+            output = self._docker_command(["docker", "images", "-q", image_name])
+            return len(output) > 0
         except:
             return False
 

@@ -91,7 +91,10 @@ class Orchestrator:
                         res = self._run_exploit(exploit_data)
                         
                         is_success = exploit_data.get("is_goal_achieved", False)
-                        if any(k in res.lower() for k in ["success", "hacked", "uid=", "root:", "defacement successful"]): is_success = True
+                        # Check for more definitive success markers in the output
+                        success_markers = ["uid=0(root)", "root:x:0:0", "defacement successful", "database_dump_complete", "pwned"]
+                        if any(k in res.lower() for k in success_markers): 
+                            is_success = True
                         
                         if is_success:
                             console.print(Panel(f"[bold green]OBJECTIVE REACHED[/bold green]\n\n{res}", title="Assessment Objective Achieved"))
@@ -139,12 +142,15 @@ class Orchestrator:
         return "Error: Failed to write script to container."
 
     def generate_final_report(self):
-        name = f"ndrill_assessment_report_{self.target_url.replace('.', '_')}.md"
+        import re
+        safe_target = re.sub(r'[^a-zA-Z0-9]', '_', self.target_url)
+        name = f"ndrill_assessment_report_{safe_target}.md"
         content = f"# nDrill Security Assessment Report: {self.target_url}\n## Mission: {self.user_instructions}\n## Result: {self.knowledge_base.get('last_exploit_result', 'Incomplete')}\n"
         try:
             with open(name, "w") as f: f.write(content)
             console.print(Panel(f"Final Report: {name}", title="Done"))
-        except: pass
+        except Exception as e:
+            console.print(f"[red]Error saving report:[/red] {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
