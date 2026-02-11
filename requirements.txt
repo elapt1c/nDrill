@@ -1,0 +1,17 @@
+rich
+ollama
+requests
+docker
+pydantic
+anyio
+httpcore
+httpx
+certifi
+charset-normalizer
+idna
+markdown-it-py
+mdurl
+pygments
+urllib3
+typing-extensions
+typing-inspection

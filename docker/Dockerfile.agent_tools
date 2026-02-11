@@ -1,0 +1,43 @@
+# docker/Dockerfile.agent_tools
+FROM python:3.9-slim-bullseye
+
+# Install basic network tools and dependencies
+RUN sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    nmap \
+    dnsutils \
+    iputils-ping \
+    net-tools \
+    whois \
+    nikto \
+    sqlmap \
+    gobuster \
+    ffuf \
+    dirb \
+    hydra \
+    wfuzz \
+    git \
+    medusa \
+    smbclient \
+    wget \
+    make \
+    gcc \
+    libc6-dev \
+    # Install Commix
+    && git clone --depth 1 https://github.com/commixproject/commix.git /opt/commix \
+    && ln -s /opt/commix/commix.py /usr/local/bin/commix \
+    # Install Searchsploit
+    && git clone --depth 1 https://github.com/offensive-security/exploitdb.git /opt/exploit-database \
+    && ln -sf /opt/exploit-database/searchsploit /usr/local/bin/searchsploit \
+    # Install Python libraries for exploits
+    && pip install --no-cache-dir requests scapy beautifulsoup4 \
+    # Cleanup
+    && rm -rf /var/lib/apt/lists/*
+
+# Set a working directory
+WORKDIR /app
+
+# Command to keep the container running
+CMD ["sleep", "infinity"]
