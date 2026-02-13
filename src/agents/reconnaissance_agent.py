@@ -40,7 +40,7 @@ class ReconnaissanceAgent(BaseAgent):
                 
             extracted = self.extract_json_from_llm_response(raw_llm_output)
             try:
-                if "..." in extracted: raise ValueError("Placeholders detected.")
+                #if "..." in extracted: raise ValueError("Placeholders detected.")
                 return raw_llm_output, extracted, json.loads(extracted, strict=False)
             except Exception as e:
                 if attempt < max_attempts - 1:
