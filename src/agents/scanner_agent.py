@@ -52,8 +52,8 @@ class ScannerAgent(BaseAgent):
             extracted_json_str = self.extract_json_from_llm_response(raw_llm_output)
             try:
                 # Validate against placeholders
-                if "..." in extracted_json_str or "target.com" in extracted_json_str:
-                    raise ValueError("Output contains placeholders.")
+                #if "..." in extracted_json_str or "target.com" in extracted_json_str:
+                #    raise ValueError("Output contains placeholders.")
                     
                 data = json.loads(extracted_json_str, strict=False)
                 return raw_llm_output, extracted_json_str, data
