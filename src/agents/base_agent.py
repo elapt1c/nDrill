@@ -8,12 +8,17 @@ from rich.panel import Panel
 console = Console()
 
 class BaseAgent:
-    def __init__(self, model_name, tool_executor, user_instructions, model_provider="ollama", openrouter_key=None):
+    def __init__(self, model_name, tool_executor, user_instructions, model_provider="ollama", openrouter_key=None, log_callback=None):
         self.model_name = model_name
         self.tool_executor = tool_executor
         self.user_instructions = user_instructions
         self.model_provider = model_provider
         self.openrouter_key = openrouter_key
+        self.log_callback = log_callback
+
+    def _log(self, message, type="info", data=None):
+        if self.log_callback:
+            self.log_callback({"type": type, "message": message, "data": data})
 
     def _chat(self, messages):
         if self.model_provider == "ollama":
