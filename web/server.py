@@ -312,6 +312,16 @@ async def get_index():
             appendLog(event);
         });
 
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function appendLog(event) {
             if (!event) return;
             const entry = document.createElement('div');
@@ -320,24 +330,28 @@ async def get_index():
             let message = event.message || '';
             
             if (event.type === 'tool' && event.data) {
+                const toolName = escapeHTML(event.data.tool || '');
                 if (event.data.code) {
-                    message = `<strong>GENERATING SCRIPT: ${event.data.tool || ''}</strong><pre class="code-block">${event.data.code}</pre>`;
+                    message = `<strong>GENERATING SCRIPT: ${toolName}</strong><pre class="code-block">${escapeHTML(event.data.code)}</pre>`;
                 } else if (event.data.args) {
-                    message = `<strong>EXECUTING TOOL: ${event.data.tool || ''}</strong><pre class="code-block">${event.data.tool} ${event.data.args.join(' ')}</pre>`;
+                    message = `<strong>EXECUTING TOOL: ${toolName}</strong><pre class="code-block">${toolName} ${escapeHTML(event.data.args.join(' '))}</pre>`;
                 } else if (event.data.output) {
-                    message = `<strong>OUTPUT: ${event.data.tool || ''}</strong><pre class="code-block">${event.data.output}</pre>`;
+                    message = `<strong>OUTPUT: ${toolName}</strong><pre class="code-block">${escapeHTML(event.data.output)}</pre>`;
                 }
             } else if (event.type === 'thought') {
-                message = `<strong>AGENT REASONING</strong><div style="margin-top:0.4rem;">${message}</div>`;
+                message = `<strong>AGENT REASONING</strong><div style="margin-top:0.4rem;">${escapeHTML(message)}</div>`;
             } else if (event.type === 'phase') {
                 // Clean any accidental HTML tags from the message
                 const cleanMessage = message.replace(/<[^>]*>?/gm, '');
-                message = `<strong>ASSESSMENT PHASE: ${cleanMessage.toUpperCase()}</strong>`;
+                message = `<strong>ASSESSMENT PHASE: ${escapeHTML(cleanMessage.toUpperCase())}</strong>`;
                 statusBadge.textContent = cleanMessage;
             } else if (event.type === 'success') {
                 statusBadge.textContent = 'COMPLETED';
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
+                message = escapeHTML(message);
+            } else {
+                message = escapeHTML(message);
             }
 
             entry.innerHTML = message;
