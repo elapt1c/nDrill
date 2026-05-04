@@ -30,7 +30,6 @@ app.add_middleware(
 )
 
 # Standard ASGI app wrapper
-# This is the entry point for uvicorn
 socket_app = socketio.ASGIApp(sio, app)
 
 class GlobalState:
@@ -251,11 +250,14 @@ async def get_index():
         </div>
 
         <div class="input-group">
-            <label>Model Engine</label>
-            <select id="model">
-                <option value="arcee-ai/trinity-large-preview:free">arcee-ai/trinity-large-preview:free</option>
-                <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
-            </select>
+            <label>Model Engine (Custom or Selection)</label>
+            <input type="text" id="model" list="model-options" placeholder="Enter or select model...">
+            <datalist id="model-options">
+                <option value="arcee-ai/trinity-large-preview:free">
+                <option value="google/gemini-2.0-flash-001">
+                <option value="anthropic/claude-3.5-sonnet">
+                <option value="openai/gpt-4o">
+            </datalist>
         </div>
 
         <div class="input-group">
@@ -288,7 +290,6 @@ async def get_index():
     </div>
 
     <script>
-        // Automatic default connection
         const socket = io();
 
         const terminal = document.getElementById('terminal');
@@ -297,6 +298,33 @@ async def get_index():
         const statusBadge = document.getElementById('status-badge');
         const activeTargetDisplay = document.getElementById('active-target');
         const connStatus = document.getElementById('conn-status');
+
+        // Cookie Helper Functions
+        function setCookie(name, value, days = 30) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/;SameSite=Strict";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Load saved preferences on startup
+        window.onload = () => {
+            const savedApiKey = getCookie('ndrill_api_key');
+            const savedModel = getCookie('ndrill_model');
+            if (savedApiKey) document.getElementById('apiKey').value = savedApiKey;
+            if (savedModel) document.getElementById('model').value = savedModel;
+        };
 
         socket.on('connect', () => {
             connStatus.textContent = 'Connected (sid: ' + socket.id + ')';
@@ -341,7 +369,6 @@ async def get_index():
             } else if (event.type === 'thought') {
                 message = `<strong>AGENT REASONING</strong><div style="margin-top:0.4rem;">${escapeHTML(message)}</div>`;
             } else if (event.type === 'phase') {
-                // Clean any accidental HTML tags from the message
                 const cleanMessage = message.replace(/<[^>]*>?/gm, '');
                 message = `<strong>ASSESSMENT PHASE: ${escapeHTML(cleanMessage.toUpperCase())}</strong>`;
                 statusBadge.textContent = cleanMessage;
@@ -365,10 +392,14 @@ async def get_index():
             const model = document.getElementById('model').value;
             const comment = document.getElementById('comment').value;
 
-            if (!target || !apiKey) {
-                alert("Target URL and API Key are required.");
+            if (!target || !apiKey || !model) {
+                alert("Target URL, API Key, and Model are required.");
                 return;
             }
+
+            // Save settings to cookies
+            setCookie('ndrill_api_key', apiKey);
+            setCookie('ndrill_model', model);
 
             terminal.innerHTML = '';
             appendLog({type: 'system', message: 'Initiating assessment sequence...'});
